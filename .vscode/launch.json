@@ -1,0 +1,32 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Procon32Page",
+            "type": "dart",
+            "request": "launch",
+            "program": "${workspaceFolder}/Procon32Page/procon32_page/lib/main.dart"
+        },
+        {
+            // Use IntelliSense to find out which attributes exist for C# debugging
+            // Use hover for the description of the existing attributes
+            // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
+            "name": "Procon32API",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Procon32API_Build",
+            "program": "${workspaceFolder}/Procon32API/Procon32API/bin/Debug/net5.0/Procon32API.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Procon32API/Procon32API",
+            "stopAtEntry": false,
+            // Enable launching a web browser when ASP.NET Core starts. For more information: https://aka.ms/VSCode-CS-LaunchJson-WebBrowser
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+        }
+    ]
+}
