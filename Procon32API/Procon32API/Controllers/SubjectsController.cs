@@ -85,6 +85,7 @@ namespace Procon32API.Controllers
             var userid = ApiKeyAuthHandler.GetUserID(HttpContext);
 
             subject.Id = UniqueStringGenerator.Generate();
+            subject.CreatedDateTime = DateTime.Now;
 
             subject.BaseImage = await _context.Image.FindAsync(subject.BaseImageId);
             if (subject.BaseImage == null)
