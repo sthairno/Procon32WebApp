@@ -35,6 +35,9 @@ namespace Procon32API.Models
         Rotate270 = 270
     }
 
+    /// <summary>
+    /// XY方向の個数
+    /// </summary>
     [Owned]
     public class CountXY
     {
@@ -139,9 +142,15 @@ namespace Procon32API.Models
         [Required]
         public CountXY PeaceCount { get; set; }
 
+        /// <summary>
+        /// 各ピースの位置情報
+        /// </summary>
         [Required]
         public string[][] Indexes { get; set; }
 
+        /// <summary>
+        /// 各ピースの回転情報
+        /// </summary>
         [Required]
         public PeaceRotate[][] Rotations { get; set; }
     }

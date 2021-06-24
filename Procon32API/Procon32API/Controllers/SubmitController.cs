@@ -13,6 +13,9 @@ using System.Threading.Tasks;
 
 namespace Procon32API.Controllers
 {
+    /// <summary>
+    /// 課題管理
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(AuthenticationSchemes = "ApiKey")]

@@ -9,6 +9,9 @@ using System.IO;
 
 namespace Procon32API.Models
 {
+    /// <summary>
+    /// ユーザーデータ
+    /// </summary>
     public class User
     {
         /// <summary>
@@ -30,13 +33,25 @@ namespace Procon32API.Models
         public DateTime CreatedDateTime { get; set; }
     }
 
+    /// <summary>
+    /// APIキー
+    /// </summary>
     public class APIKey
     {
+        /// <summary>
+        /// APIキーの値
+        /// </summary>
         [Key]
         public string Key { get; set; }
 
+        /// <summary>
+        /// APIキーに関連付けられたユーザーID
+        /// </summary>
         public string UserID { get; set; }
 
+        /// <summary>
+        /// 更新日
+        /// </summary>
         public DateTime UpdatedDateTime { get; set; }
     }
 }
