@@ -21,7 +21,8 @@
                 "publish",
                 "${workspaceFolder}/Procon32API/Procon32API/Procon32API.csproj",
                 "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
+                "/consoleloggerparameters:NoSummary",
+                "-o", "${workspaceFolder}/Procon32API/Procon32API/bin/Publish"
             ],
             "problemMatcher": "$msCompile"
         }

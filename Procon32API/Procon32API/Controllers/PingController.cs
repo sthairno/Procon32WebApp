@@ -13,12 +13,12 @@ using Procon32API.Utilities;
 
 namespace Procon32API
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class PingController : ControllerBase
     {
         public PingController()
         {
-            
+
         }
 
         [HttpGet]

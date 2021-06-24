@@ -27,12 +27,14 @@ namespace Procon32API
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
+            _env = env;
         }
 
         public IConfiguration Configuration { get; }
+        private readonly IWebHostEnvironment _env;
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -96,7 +98,7 @@ namespace Procon32API
                     Name = "Authorization",
                     Type = SecuritySchemeType.ApiKey
                 });
-                
+
                 options.AddSecurityDefinition("Query", new OpenApiSecurityScheme
                 {
                     In = ParameterLocation.Query,
@@ -104,7 +106,7 @@ namespace Procon32API
                     Name = "key",
                     Type = SecuritySchemeType.ApiKey
                 });
-                
+
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
@@ -137,20 +139,24 @@ namespace Procon32API
             });
 
             services.AddDbContext<Procon32Context>(options =>
-            {
-#if DEBUG
-                options.UseInMemoryDatabase("Procon32DB");
-#else
-                options.UseSqlServer(Configuration["ConnectionStrings:Procon32Context"],
-                    sqlServerOptionsAction: sqlOptions =>
+                {
+                    if (_env.IsDevelopment())
                     {
-                        sqlOptions.EnableRetryOnFailure(
-                            maxRetryCount: 10,
-                            maxRetryDelay: TimeSpan.FromSeconds(60),
-                            errorNumbersToAdd: null);
-                    });
-#endif
-            });
+                        options.UseInMemoryDatabase("Procon32DB");
+                    }
+                    else
+                    {
+                        var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings_Procon32Context");
+                        options.UseSqlServer(connectionString,
+                            sqlServerOptionsAction: sqlOptions =>
+                            {
+                                sqlOptions.EnableRetryOnFailure(
+                                    maxRetryCount: 10,
+                                    maxRetryDelay: TimeSpan.FromSeconds(60),
+                                    errorNumbersToAdd: null);
+                            });
+                    }
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

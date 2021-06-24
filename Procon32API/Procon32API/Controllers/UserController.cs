@@ -15,7 +15,7 @@ namespace Procon32API
     /// <summary>
     /// ユーザー管理
     /// </summary>
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class UserController : ControllerBase
     {
