@@ -24,6 +24,28 @@
                 "/consoleloggerparameters:NoSummary"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Procon32Page_OpenAPI_Generate",
+            "type": "shell",
+            "command": "openapi-generator-cli",
+            "args": [
+                "generate",
+                "-i", "https://procon32.sthairno.dev/swagger/v1/swagger.json",
+                "-g", "dart-dio-next",
+                "-o", "${workspaceFolder}/Procon32Page/openapi"
+            ]
+        },
+        {
+            "label": "Procon32Page_OpenAPI_Build",
+            "type": "shell",
+            "group": "build",
+            "options": { "cwd": "${workspaceFolder}/Procon32Page/openapi" },
+            "command": "flutter",
+            "dependsOn": [ "Procon32Page_OpenAPI_Generate" ],
+            "args": [
+                "pub", "run", "build_runner", "build"
+            ]
         }
     ]
 }
