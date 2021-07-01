@@ -140,7 +140,7 @@ namespace Procon32API
                 return NotFound("APIKey Not Created");
             }
 
-            return Ok(new { apikey = apikey.Key });
+            return Ok(apikey);
         }
 
         /// <summary>
