@@ -48,8 +48,16 @@ namespace Procon32API
 
             user.UserID = id;
             user.CreatedDateTime = DateTime.Now;
+            var apikey = new APIKey()
+            {
+                Key = Guid.NewGuid().ToString("N"),
+                UserID = id,
+                UpdatedDateTime = DateTime.Now
+            };
 
             await _context.User.AddAsync(user);
+            await _context.APIKey.AddAsync(apikey);
+
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetUser", user);
