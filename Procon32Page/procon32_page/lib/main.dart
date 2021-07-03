@@ -158,6 +158,14 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Googleにサインイン
+  // 参考: https://firebase.flutter.dev/docs/auth/social/
+  Future<UserCredential> _signInWithGoogle() async {
+    GoogleAuthProvider googleProvider = GoogleAuthProvider();
+
+    return await FirebaseAuth.instance.signInWithPopup(googleProvider);
+  }
+
   Future<void> _loginToProcon32Api(User user) async {
     var apiUser = await _procon32api.login(await user.getIdToken());
     if (apiUser == null) {
@@ -208,7 +216,15 @@ class _HomePageState extends State<HomePage> {
 
     Widget userIcon = firebaseUser?.photoURL == null
         ? const Icon(Icons.account_circle)
-        : Image.network(firebaseUser!.photoURL!);
+        : Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  fit: BoxFit.fill,
+                  image: NetworkImage(firebaseUser!.photoURL!),
+                )));
 
     return Scaffold(
       appBar: AppBar(
@@ -233,7 +249,9 @@ class _HomePageState extends State<HomePage> {
               padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
               child: procon32apiUser == null
                   ? OutlinedButton(
-                      onPressed: () async {},
+                      onPressed: () async {
+                        _signInWithGoogle();
+                      },
                       child: Text(
                         "ログイン",
                         style: TextStyle(color: Colors.white),
