@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:procon32_page/procon32api.dart';
 import 'package:openapi/openapi.dart' as api;
 
 void main() {
@@ -48,6 +49,67 @@ class _Procon32AppState extends State<Procon32App> {
   }
 }
 
+class CreateUserDialog extends StatefulWidget {
+  CreateUserDialog(this.api);
+
+  final Procon32API api;
+
+  @override
+  _CreateUserDialogState createState() => _CreateUserDialogState();
+}
+
+class _CreateUserDialogState extends State<CreateUserDialog> {
+  String _displayName = "";
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text("ユーザーを作成"),
+      content: TextField(
+        decoration: new InputDecoration(labelText: "ユーザー名"),
+        onChanged: (text) {
+          setState(() {
+            _displayName = text;
+          });
+        },
+      ),
+      actions: [
+        TextButton(
+            onPressed: () async {
+              widget.api.createUser(
+                  await FirebaseAuth.instance.currentUser!.getIdToken(),
+                  _displayName);
+              Navigator.pop(context);
+            },
+            child: Text("OK"))
+      ],
+    );
+  }
+}
+
+class CreateSubjectDialog extends StatefulWidget {
+  const CreateSubjectDialog({Key? key}) : super(key: key);
+
+  @override
+  _CreateSubjectDialogState createState() => _CreateSubjectDialogState();
+}
+
+class _CreateSubjectDialogState extends State<CreateSubjectDialog> {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(title: Text("課題を作成"), actions: [
+      TextButton(
+        child: Text("キャンセル"),
+        onPressed: () => Navigator.pop(context),
+      ),
+      TextButton(
+        child: Text("作成"),
+        onPressed: () {},
+      ),
+    ]);
+  }
+}
+
 class HomePage extends StatefulWidget {
   HomePage({Key? key}) : super(key: key);
 
@@ -64,76 +126,63 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class Subject {
-  final String id;
-  final String name;
-  final String subjectFilePath;
-  final String previewFilePath;
-  final String thumbnailFilePath;
-  final int peaceCountX;
-  final int peaceCountY;
-
-  Subject(this.id, this.name, this.subjectFilePath, this.previewFilePath,
-      this.thumbnailFilePath, this.peaceCountX, this.peaceCountY);
-}
-
 class _HomePageState extends State<HomePage> {
-  final subjectsUri = Uri.http("localhost:5032", "api/subjects");
+  final Procon32API _procon32api = new Procon32API();
 
-  List<Subject> _subjects = [];
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  FirebaseAuth _auth = FirebaseAuth.instance;
+  List<api.Subject> _subjects = [];
 
-  Future<bool> ping() async {
-    var result = await http.get(Uri.http("localhost:5032", "ping"));
-    return result.statusCode == 200;
+  _HomePageState() {
+    _procon32api.userStateChanges().listen((user) {
+      if (user == null) {
+        print("[procon32api] logout");
+      } else {
+        print("[procon32api] login");
+      }
+      setState(() {});
+    });
+
+    if (_auth.currentUser != null) {
+      _loginToProcon32Api(_auth.currentUser!);
+    }
+
+    _auth.authStateChanges().listen((User? user) async {
+      if (user == null) {
+        print("[firebase] logout");
+        _procon32api.logout();
+      } else {
+        print("[firebase] login");
+        await _loginToProcon32Api(user);
+      }
+    });
   }
 
-  Future<bool> pingWithJWT() async {
-    var result = await http.get(Uri.http("localhost:5032", "ping/jwt"),
-        headers: {
-          "Authorization": "Bearer ${await _auth.currentUser?.getIdToken()}"
-        });
-    return result.statusCode == 200;
+  Future<void> _loginToProcon32Api(User user) async {
+    var apiUser = await _procon32api.login(await user.getIdToken());
+    if (apiUser == null) {
+      showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (builder) => CreateUserDialog(_procon32api));
+    }
   }
 
   void updateSubjectList() async {
-    var result = await http.get(subjectsUri);
-    if (result.statusCode != 200) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(result.statusCode.toString())));
-      print(result);
-      return;
-    }
-    var body = (json.decode(result.body) as List<dynamic>)
-        .cast<Map<String, dynamic>>();
+    var result = await _procon32api.getSubjects();
     setState(() {
-      _subjects = body
-          .map((map) => Subject(
-              map["id"],
-              map["name"],
-              map["subjectFilePath"],
-              map["previewFilePath"],
-              map["thumbnailFilePath"],
-              map["peaceCount"]["x"],
-              map["peaceCount"]["y"]))
-          .toList();
+      _subjects = result ?? [];
     });
   }
 
   @override
   void initState() {
     super.initState();
-    _auth.authStateChanges().listen((User? user) async {
-      print("user: " + user.toString());
-      if (user != null) {
-        print("token: " + await user.getIdToken());
-      }
-    });
+
     updateSubjectList();
   }
 
-  Widget _buildSubjectCard(Subject subject) => Stack(children: [
+  Widget _buildSubjectCard(api.Subject subject) => Stack(children: [
         Container(
             decoration: BoxDecoration(
               color: Colors.grey.shade700,
@@ -154,19 +203,25 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var user = FirebaseAuth.instance.currentUser;
+    var firebaseUser = FirebaseAuth.instance.currentUser;
+    var procon32apiUser = _procon32api.getUser();
+
+    Widget userIcon = firebaseUser?.photoURL == null
+        ? const Icon(Icons.account_circle)
+        : Image.network(firebaseUser!.photoURL!);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Procon32 競技練習サーバー"),
+        title: Text("Procon32競技練習サーバー"),
         actions: <Widget>[
           IconButton(
               onPressed: () async {
-                bool nomal = await ping();
-                bool jwt = await pingWithJWT();
+                bool nomal = await _procon32api.ping();
+                bool jwt = await _procon32api.pingWithJWT();
+                bool apikey = await _procon32api.pingWithAPIKey();
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: Text(
-                        "Ping: ${nomal ? "Success" : "Fail"}\nPing(JWT): ${jwt ? "Success" : "Fail"}")));
+                        "Ping: ${nomal ? "Success" : "Fail"}\nPing(JWT): ${jwt ? "Success" : "Fail"}\nPing(APIKey): ${apikey ? "Success" : "Fail"}")));
               },
               icon: const Icon(Icons.contactless)),
           IconButton(
@@ -175,41 +230,35 @@ class _HomePageState extends State<HomePage> {
               },
               icon: const Icon(Icons.refresh)),
           Padding(
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 10.0),
-              child: user == null
+              padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+              child: procon32apiUser == null
                   ? OutlinedButton(
-                      onPressed: () async {
-                        try {
-                          await _auth.signInAnonymously();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("サインインしました")));
-                          setState(() {});
-                        } on FirebaseAuthException {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("サインインに失敗しました")));
-                        }
-                      },
+                      onPressed: () async {},
                       child: Text(
-                        "LOGIN",
+                        "ログイン",
                         style: TextStyle(color: Colors.white),
                       ))
-                  : IconButton(
-                      onPressed: () async {
-                        try {
-                          await _auth.signOut();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("サインアウトしました")));
-                          setState(() {});
-                        } on FirebaseAuthException {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("サインアウトに失敗しました")));
-                        }
+                  : PopupMenuButton(
+                      child: userIcon,
+                      tooltip: procon32apiUser.displayName,
+                      onSelected: (_) async {
+                        await _auth.signOut();
                       },
-                      icon: user.photoURL == null
-                          ? const Icon(Icons.account_circle)
-                          : Image.network(user.photoURL!),
-                      color: Colors.white,
-                    ))
+                      itemBuilder: (builder) => <PopupMenuEntry>[
+                            PopupMenuItem(
+                              enabled: false,
+                              child: ListTile(
+                                leading: userIcon,
+                                title: Text(procon32apiUser.displayName),
+                                subtitle: Text(procon32apiUser.userID!),
+                              ),
+                            ),
+                            PopupMenuDivider(),
+                            PopupMenuItem(
+                              value: 0,
+                              child: Text("ログアウト"),
+                            )
+                          ]))
         ],
       ),
       body: StaggeredGridView.count(
@@ -221,14 +270,20 @@ class _HomePageState extends State<HomePage> {
             _subjects.map((subject) => _buildSubjectCard(subject)).toList(),
         staggeredTiles: _subjects
             .map((subject) => StaggeredTile.count(
-                1, subject.peaceCountY / subject.peaceCountX))
+                1, subject.peaceCount.y / subject.peaceCount.x))
             .toList(),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {},
-      //   tooltip: 'Increment',
-      //   child: const Icon(Icons.add),
-      // )
+      floatingActionButton: _procon32api.isLoggedIn()
+          ? FloatingActionButton(
+              onPressed: () {
+                showDialog(
+                    context: context,
+                    builder: (builder) => CreateSubjectDialog());
+              },
+              tooltip: "課題を作成",
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 }
