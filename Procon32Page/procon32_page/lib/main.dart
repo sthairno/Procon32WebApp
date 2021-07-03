@@ -236,16 +236,6 @@ class _HomePageState extends State<HomePage> {
         title: Text("Procon32競技練習サーバー"),
         actions: <Widget>[
           IconButton(
-              onPressed: () async {
-                bool nomal = await _procon32api.ping();
-                bool jwt = await _procon32api.pingWithJWT();
-                bool apikey = await _procon32api.pingWithAPIKey();
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(
-                        "Ping: ${nomal ? "Success" : "Fail"}\nPing(JWT): ${jwt ? "Success" : "Fail"}\nPing(APIKey): ${apikey ? "Success" : "Fail"}")));
-              },
-              icon: const Icon(Icons.contactless)),
-          IconButton(
               onPressed: () {
                 updateSubjectList();
               },
