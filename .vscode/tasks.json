@@ -31,7 +31,7 @@
             "command": "openapi-generator-cli",
             "args": [
                 "generate",
-                "-i", "https://procon32.sthairno.dev/swagger/v1/swagger.json",
+                "-i", "${workspaceFolder}/Procon32Page/Procon32API.json",
                 "-g", "dart-dio-next",
                 "-o", "${workspaceFolder}/Procon32Page/openapi"
             ]

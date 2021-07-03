@@ -1,0 +1,1001 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Procon32 API",
+    "description": "第32回 競技部門 競技サーバーAPI",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/Images": {
+      "get": {
+        "tags": [
+          "Images"
+        ],
+        "summary": "すべての画像を取得",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Image"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKey": []
+          }
+        ]
+      }
+    },
+    "/api/Images/{id}": {
+      "get": {
+        "tags": [
+          "Images"
+        ],
+        "summary": "画像情報の取得",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "画像ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "画像ID",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Image"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "指定したIDの画像が見つからないとき",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKey": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Images"
+        ],
+        "summary": "画像の削除",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "画像ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "画像ID",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "画像が正常に削除できたとき"
+          },
+          "404": {
+            "description": "指定したIDの画像が見つからないとき",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKey": []
+          }
+        ]
+      }
+    },
+    "/api/Images/upload": {
+      "post": {
+        "tags": [
+          "Images"
+        ],
+        "summary": "画像のアップロード",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "encoding": {
+                "file": {
+                  "style": "form"
+                }
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "description": "画像ファイル",
+                    "format": "binary",
+                    "nullable": false
+                  }
+                }
+              }
+            }
+          },
+          "description": "画像ファイル"
+        },
+        "responses": {
+          "201": {
+            "description": "画像のアップロードが正常に完了したとき",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Image"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "画像ファイルの形式が不正であるとき",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKey": []
+          }
+        ]
+      }
+    },
+    "/api/Ping": {
+      "get": {
+        "tags": [
+          "Ping"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "OK": {
+                    "value": {
+                      "status": "OK"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "サーバー接続検証"
+      }
+    },
+    "/api/Ping/jwt": {
+      "get": {
+        "tags": [
+          "Ping"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "OK": {
+                    "value": {
+                      "status": "OK"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ],
+        "summary": "サーバー接続検証(JWT認証)"
+      }
+    },
+    "/api/Ping/apikey": {
+      "get": {
+        "tags": [
+          "Ping"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "OK": {
+                    "value": {
+                      "status": "OK"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKey": []
+          }
+        ],
+        "summary": "サーバー接続検証(APIキー認証)"
+      }
+    },
+    "/api/Subjects": {
+      "get": {
+        "tags": [
+          "Subjects"
+        ],
+        "summary": "すべての課題を取得",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Subject"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Subjects"
+        ],
+        "summary": "課題の生成",
+        "requestBody": {
+          "description": "課題情報",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Subject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "課題の生成が正常に完了したとき",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subject"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "指定したIDの原画像が見つからないとき",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKey": []
+          }
+        ]
+      }
+    },
+    "/api/Subjects/{id}": {
+      "get": {
+        "tags": [
+          "Subjects"
+        ],
+        "summary": "課題情報の取得",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "課題ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "課題ID",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subject"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "指定したIDの課題が見つからないとき",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Subjects"
+        ],
+        "summary": "課題の削除",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "課題ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "課題ID",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "課題が正常に削除できたとき"
+          },
+          "404": {
+            "description": "指定したIDの課題が見つからないとき",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKey": []
+          }
+        ]
+      }
+    },
+    "/api/Submit": {
+      "post": {
+        "tags": [
+          "Submit"
+        ],
+        "summary": "回答の検証",
+        "parameters": [
+          {
+            "name": "subjectId",
+            "in": "query",
+            "description": "課題ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "課題ID"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "回答データ",
+          "content": {
+            "text/plain": {
+              "schema": {
+                "type": "string",
+                "description": "回答データ",
+                "nullable": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "回答が受理されたとき"
+          },
+          "400": {
+            "description": "回答のフォーマットが不正な場合",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "指定したIDの課題が見つからないとき",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKey": []
+          }
+        ]
+      }
+    },
+    "/api/User": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "ユーザーを登録",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "User"
+        ],
+        "summary": "ユーザーを削除",
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "自身のユーザー情報を取得",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/User/apikey": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "APIキーの取得",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKey"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/User/apikey/update": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "APIキーの更新",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKey"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/User/{id}": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "ユーザー情報の取得",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ユーザーID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "ユーザーID",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Size": {
+        "type": "object",
+        "properties": {
+          "width": {
+            "type": "integer",
+            "description": "横幅",
+            "format": "int32"
+          },
+          "height": {
+            "type": "integer",
+            "description": "縦幅",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "サイズ情報"
+      },
+      "Image": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "画像ID",
+            "nullable": true
+          },
+          "createdDateTime": {
+            "type": "string",
+            "description": "作成日",
+            "format": "date-time"
+          },
+          "createdUserId": {
+            "type": "string",
+            "description": "作成者ユーザー",
+            "nullable": true
+          },
+          "size": {
+            "$ref": "#/components/schemas/Size"
+          },
+          "rawFilePath": {
+            "type": "string",
+            "description": "画像ファイルパス",
+            "nullable": true
+          },
+          "thumbnailFilePath": {
+            "type": "string",
+            "description": "サムネイル画像パス",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "画像情報"
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": {}
+      },
+      "CountXY": {
+        "required": [
+          "x",
+          "y"
+        ],
+        "type": "object",
+        "properties": {
+          "x": {
+            "maximum": 16,
+            "minimum": 2,
+            "type": "integer",
+            "description": "X方向の個数",
+            "format": "int32"
+          },
+          "y": {
+            "maximum": 16,
+            "minimum": 2,
+            "type": "integer",
+            "description": "Y方向の個数",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "XY方向の個数"
+      },
+      "PeaceRotate": {
+        "enum": [
+          0,
+          90,
+          180,
+          270
+        ],
+        "type": "integer",
+        "description": "ピース回転情報",
+        "format": "int32"
+      },
+      "Subject": {
+        "required": [
+          "baseImageId",
+          "indexes",
+          "maxSelectCount",
+          "name",
+          "peaceCount",
+          "rotations",
+          "selectionCost",
+          "swapCost"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "課題ID",
+            "nullable": true
+          },
+          "createdUserId": {
+            "type": "string",
+            "description": "作成者ユーザーID",
+            "nullable": true
+          },
+          "createdDateTime": {
+            "type": "string",
+            "description": "作成日",
+            "format": "date-time"
+          },
+          "size": {
+            "$ref": "#/components/schemas/Size"
+          },
+          "subjectFilePath": {
+            "type": "string",
+            "description": "課題ファイルパス",
+            "nullable": true
+          },
+          "previewFilePath": {
+            "type": "string",
+            "description": "プレビュー画像パス",
+            "nullable": true
+          },
+          "thumbnailFilePath": {
+            "type": "string",
+            "description": "サムネイル画像パス",
+            "nullable": true
+          },
+          "baseImage": {
+            "$ref": "#/components/schemas/Image"
+          },
+          "baseImageId": {
+            "type": "string",
+            "description": "原画像ID"
+          },
+          "name": {
+            "maxLength": 32,
+            "minLength": 3,
+            "pattern": "^[^\\p{C}\\s]+$",
+            "type": "string",
+            "description": "表示名"
+          },
+          "maxSelectCount": {
+            "maximum": 128,
+            "minimum": 2,
+            "type": "integer",
+            "description": "最大選択回数",
+            "format": "int32"
+          },
+          "selectionCost": {
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer",
+            "description": "選択コスト",
+            "format": "int32"
+          },
+          "swapCost": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer",
+            "description": "交換コスト",
+            "format": "int32"
+          },
+          "peaceCount": {
+            "$ref": "#/components/schemas/CountXY"
+          },
+          "indexes": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "各ピースの位置情報"
+          },
+          "rotations": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/PeaceRotate"
+              }
+            },
+            "description": "各ピースの回転情報"
+          }
+        },
+        "additionalProperties": false,
+        "description": "課題情報"
+      },
+      "User": {
+        "required": [
+          "displayName"
+        ],
+        "type": "object",
+        "properties": {
+          "userID": {
+            "type": "string",
+            "description": "ユーザー固有のID",
+            "nullable": true
+          },
+          "displayName": {
+            "maxLength": 50,
+            "minLength": 3,
+            "pattern": "^[^\\p{C}\\s][^\\p{C}\\f\\n\\r\\t\\v]*[^\\p{C}\\s]$",
+            "type": "string",
+            "description": "ユーザー指定の表示名"
+          },
+          "createdDateTime": {
+            "type": "string",
+            "description": "ユーザーの作成日",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "ユーザーデータ"
+      },
+      "APIKey": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "APIキーの値",
+            "nullable": true
+          },
+          "userID": {
+            "type": "string",
+            "description": "APIキーに関連付けられたユーザーID",
+            "nullable": true
+          },
+          "updatedDateTime": {
+            "type": "string",
+            "description": "更新日",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "APIキー"
+      }
+    },
+    "securitySchemes": {
+      "JWT": {
+        "type": "apiKey",
+        "description": "Authorizationヘッダーに追加する認証情報",
+        "name": "Authorization",
+        "in": "header"
+      },
+      "APIKey": {
+        "type": "apiKey",
+        "description": "keyクエリに追加する認証情報",
+        "name": "key",
+        "in": "query"
+      }
+    }
+  },
+  "security": [
+    {
+      "JWT": []
+    },
+    {
+      "APIKey": []
+    }
+  ],
+  "servers": [
+    {
+      "url": "https://procon32.sthairno.dev/",
+      "description": "公開サーバー"
+    },
+    {
+      "url": "http://localhost:5032/",
+      "description": "ローカルサーバー"
+    }
+  ]
+}
