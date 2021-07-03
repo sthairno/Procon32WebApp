@@ -37,12 +37,22 @@
             ]
         },
         {
+            "label": "Procon32Page_OpenAPI_PubGet",
+            "type": "shell",
+            "options": { "cwd": "${workspaceFolder}/Procon32Page/openapi" },
+            "command": "flutter",
+            "args": [
+                "pub", "get"
+            ]
+        },
+        {
             "label": "Procon32Page_OpenAPI_Build",
             "type": "shell",
             "group": "build",
             "options": { "cwd": "${workspaceFolder}/Procon32Page/openapi" },
             "command": "flutter",
-            "dependsOn": [ "Procon32Page_OpenAPI_Generate" ],
+            "dependsOn": [ "Procon32Page_OpenAPI_Generate", "Procon32Page_OpenAPI_PubGet" ],
+            "dependsOrder": "sequence",
             "args": [
                 "pub", "run", "build_runner", "build"
             ]
