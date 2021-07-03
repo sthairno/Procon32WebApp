@@ -160,10 +160,15 @@ class _HomePageState extends State<HomePage> {
 
   // Googleにサインイン
   // 参考: https://firebase.flutter.dev/docs/auth/social/
-  Future<UserCredential> _signInWithGoogle() async {
+  Future<bool> _signInWithGoogle() async {
     GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
-    return await FirebaseAuth.instance.signInWithPopup(googleProvider);
+    try {
+      await _auth.signInWithPopup(googleProvider);
+      return true;
+    } on FirebaseAuthException {
+      return false;
+    }
   }
 
   Future<void> _loginToProcon32Api(User user) async {
@@ -250,7 +255,7 @@ class _HomePageState extends State<HomePage> {
               child: procon32apiUser == null
                   ? OutlinedButton(
                       onPressed: () async {
-                        _signInWithGoogle();
+                        await _signInWithGoogle();
                       },
                       child: Text(
                         "ログイン",
