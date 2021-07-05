@@ -4,13 +4,19 @@ import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
 
 class TabStep {
-  TabStep({required this.name, required this.content, this.validate});
+  TabStep(
+      {required this.name,
+      required this.content,
+      this.validate,
+      this.onFinish});
 
   final String name;
 
   final Widget content;
 
   final bool Function()? validate;
+
+  final VoidCallback? onFinish;
 }
 
 class TabStepper extends StatefulWidget {
@@ -72,6 +78,7 @@ class _TabStepperState extends State<TabStepper> {
               onPressed: () {
                 var isOk = widget.steps[controller.index].validate?.call();
                 if (isOk == null || isOk) {
+                  widget.steps[controller.index].onFinish?.call();
                   setState(() {
                     controller.index++;
                   });
