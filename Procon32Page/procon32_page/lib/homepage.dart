@@ -174,12 +174,17 @@ class _HomePageState extends State<HomePage> {
                 1, subject.peaceCount.y / subject.peaceCount.x))
             .toList(),
       ),
-      floatingActionButton: _procon32api.isLoggedIn()
+      floatingActionButton: /*_procon32api.isLoggedIn()*/ true
           ? FloatingActionButton(
               onPressed: () {
-                showDialog(
-                    context: context,
-                    builder: (builder) => CreateSubjectDialog());
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      fullscreenDialog: true,
+                      builder: (BuildContext context) {
+                        return CreateSubjectDialog();
+                      },
+                    ));
               },
               tooltip: "課題を作成",
               child: const Icon(Icons.add),

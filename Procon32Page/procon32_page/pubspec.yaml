@@ -29,6 +29,8 @@ dependencies:
   firebase_auth: ^1.4.1
   firebase_analytics: ^8.1.2
   dots_indicator: ^2.0.0
+  file_picker: ^3.0.3
+  image: ^3.0.2
   openapi:
     path: ../openapi
 
