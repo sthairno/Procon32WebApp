@@ -40,6 +40,7 @@ class _TabStepperState extends State<TabStepper> {
   Widget _buildContent() => Expanded(
         child: Container(
           child: TabBarView(
+            physics: new NeverScrollableScrollPhysics(),
             children: List.generate(widget.steps.length, (index) {
               var step = widget.steps[index];
               return Column(
