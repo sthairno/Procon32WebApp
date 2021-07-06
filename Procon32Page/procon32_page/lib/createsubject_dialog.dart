@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:openapi/openapi.dart' as api;
 import 'package:file_picker/file_picker.dart';
 import 'package:image/image.dart' as imglib;
-import 'tabstepper.dart';
+import 'package:cool_stepper/cool_stepper.dart';
 
 class _SubjectData {
   String? displayName = null;
@@ -34,9 +34,13 @@ class CreateSubjectDialog extends StatefulWidget {
 class _CreateSubjectDialogState extends State<CreateSubjectDialog> {
   late _SubjectData data;
 
-  late Uint8List _imageBuff;
+  imglib.Image? _selectedImage;
 
-  final _formKey = GlobalKey<FormState>();
+  Uint8List? _selectedImageThumbnail;
+
+  List<Uint8List> _peaceImageThumbnails = [];
+
+  final _paramFormKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -44,6 +48,45 @@ class _CreateSubjectDialogState extends State<CreateSubjectDialog> {
 
     data = new _SubjectData();
   }
+
+  void _createSelectedImageThumbnail() {
+    _selectedImageThumbnail = imglib
+        .encodeJpg(imglib.copyResize(_selectedImage!, width: 400)) as Uint8List;
+  }
+
+  void _createClippedImage() {
+    int peaceSize = min(_selectedImage!.width ~/ data.peaceCntX!,
+        _selectedImage!.height ~/ data.peaceCntY!);
+    int imgWidth = peaceSize * data.peaceCntX!;
+    int imgHeight = peaceSize * data.peaceCntY!;
+    setState(() {});
+    data.image = imglib.copyCrop(
+        _selectedImage!,
+        (_selectedImage!.width - imgWidth) ~/ 2,
+        (_selectedImage!.height - imgHeight) ~/ 2,
+        imgWidth,
+        imgHeight);
+  }
+
+  void _createPeaceImages() {
+    const thumbnailSize = 100;
+
+    int peaceSize = data.image!.width ~/ data.peaceCntX!;
+    bool needsResize = peaceSize > thumbnailSize;
+    _peaceImageThumbnails = [];
+    for (int y = 0; y < data.peaceCntY!; y++) {
+      for (int x = 0; x < data.peaceCntX!; x++) {
+        var peaceImg = imglib.copyCrop(
+            data.image!, x * peaceSize, y * peaceSize, peaceSize, peaceSize);
+        if (needsResize) {
+          peaceImg = imglib.copyResize(peaceImg, width: thumbnailSize);
+        }
+        _peaceImageThumbnails.add(imglib.encodeJpg(peaceImg) as Uint8List);
+      }
+    }
+  }
+
+  // パラメーター設定
 
   String? _validateIntegerString(String? value, int min, int max) {
     if (value == null) {
@@ -122,7 +165,7 @@ class _CreateSubjectDialogState extends State<CreateSubjectDialog> {
                   (index) => Container(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Colors.black54,
+                        color: Colors.red,
                         width: 0.6,
                       ),
                     ),
@@ -132,7 +175,7 @@ class _CreateSubjectDialogState extends State<CreateSubjectDialog> {
             )
           : null;
 
-  Widget _buildImageUploader() {
+  Widget _buildImageSelector() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: ConstrainedBox(
@@ -153,11 +196,16 @@ class _CreateSubjectDialogState extends State<CreateSubjectDialog> {
               if (image == null) {
                 return "ファイルを読み込めませんでした";
               }
+              if (image.width < 32 ||
+                  2048 < image.width ||
+                  image.height < 32 ||
+                  2048 < image.height) {
+                return "画像の幅,高さは32px~2048pxである必要があります";
+              }
               setState(() {
-                data.image = image;
-                _imageBuff =
-                    imglib.encodeJpg(imglib.copyResize(data.image!, width: 400))
-                        as Uint8List;
+                _selectedImage = image;
+                _createSelectedImageThumbnail();
+                _peaceImageThumbnails = [];
               });
               return null;
             }();
@@ -171,8 +219,9 @@ class _CreateSubjectDialogState extends State<CreateSubjectDialog> {
               border: Border.all(color: Colors.grey.shade600, width: 2),
               borderRadius: BorderRadius.circular(4),
             ),
-            child: data.image == null
+            child: _selectedImage == null
                 ? Stack(
+                    alignment: AlignmentDirectional.center,
                     children: [
                       Center(
                         child: const Icon(Icons.image),
@@ -181,12 +230,13 @@ class _CreateSubjectDialogState extends State<CreateSubjectDialog> {
                     ].whereType<Widget>().toList(),
                   )
                 : AspectRatio(
-                    aspectRatio: data.image!.width / data.image!.height,
+                    aspectRatio: _selectedImage!.width / _selectedImage!.height,
                     child: Stack(
                       alignment: AlignmentDirectional.center,
                       children: [
                         Positioned.fill(
-                            child: Image.memory(_imageBuff, fit: BoxFit.fill)),
+                            child: Image.memory(_selectedImageThumbnail!,
+                                fit: BoxFit.fill)),
                         _buildPeacePreviewGrid(),
                       ].whereType<Widget>().toList(),
                     ),
@@ -197,64 +247,76 @@ class _CreateSubjectDialogState extends State<CreateSubjectDialog> {
     );
   }
 
-  TabStep _buildParamStep() => TabStep(
-        name: "パラメーター設定",
-        validate: () => _formKey.currentState!.validate(),
-        onFinish: () => _formKey.currentState!.save(),
+  CoolStep _buildParamStep() => CoolStep(
+        title: "パラメーター設定",
+        subtitle: "",
+        validation: () {
+          var noError = (_paramFormKey.currentState!.validate() &&
+              _selectedImage != null);
+          if (noError) {
+            setState(() {
+              _paramFormKey.currentState!.save();
+              _createClippedImage();
+              _createPeaceImages();
+            });
+          }
+          return noError ? null : "Error";
+        },
         content: Form(
-          key: _formKey,
+          key: _paramFormKey,
           child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Column(
-                children: <Widget>[
-                  TextFormField(
-                    decoration: InputDecoration(labelText: "表示名"),
-                    maxLength: 32,
-                    validator: (value) {
-                      if (value == null || value.length < 3) {
-                        return "3文字以上入力してください";
-                      }
-                      if (!RegExp("^[^\\p{C}\\s]+\$", unicode: true)
-                          .hasMatch(value)) {
-                        return "^[^\\p{C}\\s]+\$";
-                      }
-                      return null;
-                    },
-                    onSaved: (value) => data.displayName = value!,
-                  ),
-                  TextFormField(
-                    decoration:
-                        InputDecoration(labelText: "最大選択回数", counterText: ""),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    maxLength: 3,
-                    validator: (value) => _validateIntegerString(value, 2, 128),
-                    onSaved: (value) => data.maxSelectCount = int.parse(value!),
-                  ),
-                  TextFormField(
-                    decoration:
-                        InputDecoration(labelText: "選択コスト", counterText: ""),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    maxLength: 3,
-                    validator: (value) => _validateIntegerString(value, 1, 500),
-                    onSaved: (value) => data.selectionCost = int.parse(value!),
-                  ),
-                  TextFormField(
-                    decoration:
-                        InputDecoration(labelText: "交換コスト", counterText: ""),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    maxLength: 3,
-                    validator: (value) => _validateIntegerString(value, 1, 100),
-                    onSaved: (value) => data.swapCost = int.parse(value!),
-                  ),
-                  Text("原画像"),
-                  _buildPeaceCountPicker(),
-                  _buildImageUploader(),
-                ],
-              ),
+            child: Column(
+              children: <Widget>[
+                TextFormField(
+                  initialValue: data.displayName,
+                  decoration: InputDecoration(labelText: "表示名"),
+                  maxLength: 32,
+                  validator: (value) {
+                    if (value == null || value.length < 3) {
+                      return "3文字以上入力してください";
+                    }
+                    if (!RegExp("^[^\\p{C}\\s]+\$", unicode: true)
+                        .hasMatch(value)) {
+                      return "^[^\\p{C}\\s]+\$";
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => data.displayName = value!,
+                ),
+                TextFormField(
+                  initialValue: data.maxSelectCount?.toString(),
+                  decoration:
+                      InputDecoration(labelText: "最大選択回数", counterText: ""),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  maxLength: 3,
+                  validator: (value) => _validateIntegerString(value, 2, 128),
+                  onSaved: (value) => data.maxSelectCount = int.parse(value!),
+                ),
+                TextFormField(
+                  initialValue: data.selectionCost?.toString(),
+                  decoration:
+                      InputDecoration(labelText: "選択コスト", counterText: ""),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  maxLength: 3,
+                  validator: (value) => _validateIntegerString(value, 1, 500),
+                  onSaved: (value) => data.selectionCost = int.parse(value!),
+                ),
+                TextFormField(
+                  initialValue: data.swapCost?.toString(),
+                  decoration:
+                      InputDecoration(labelText: "交換コスト", counterText: ""),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  maxLength: 3,
+                  validator: (value) => _validateIntegerString(value, 1, 100),
+                  onSaved: (value) => data.swapCost = int.parse(value!),
+                ),
+                Text("原画像"),
+                _buildPeaceCountPicker(),
+                _buildImageSelector(),
+              ],
             ),
           ),
         ),
@@ -269,13 +331,28 @@ class _CreateSubjectDialogState extends State<CreateSubjectDialog> {
           TextButton(onPressed: () => Navigator.pop(context), child: Text("作成"))
         ],
       ),
-      body: TabStepper(
-        onCancel: () => Navigator.pop(context),
-        onFinish: () => Navigator.pop(context),
+      body: CoolStepper(
+        onCompleted: () => Navigator.pop(context),
+        config: CoolStepperConfig(
+          backText: "戻る",
+          nextText: "次へ",
+          stepText: "",
+          ofText: "/",
+          finalText: "生成",
+          isHeaderEnabled: false,
+        ),
         steps: [
           _buildParamStep(),
-          TabStep(name: "A", content: Container()),
-          TabStep(name: "B", content: Container())
+          CoolStep(
+              title: "A",
+              subtitle: "",
+              content: Container(),
+              validation: () => null),
+          CoolStep(
+              title: "B",
+              subtitle: "",
+              content: Container(),
+              validation: () => null)
         ],
       ),
     );
