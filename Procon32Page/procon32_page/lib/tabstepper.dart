@@ -6,13 +6,13 @@ import 'package:flutter/material.dart';
 class TabStep {
   TabStep(
       {required this.name,
-      required this.content,
+      required this.builder,
       this.validate,
       this.onFinish});
 
   final String name;
 
-  final Widget content;
+  final Widget Function() builder;
 
   final bool Function()? validate;
 
@@ -37,29 +37,79 @@ class _TabStepperState extends State<TabStepper> {
   static double _titleBarHeight = 40;
   static double _stepBarHeight = 50;
 
-  Widget _buildContent() => Expanded(
-        child: Container(
-          child: TabBarView(
-            physics: new NeverScrollableScrollPhysics(),
-            children: List.generate(widget.steps.length, (index) {
-              var step = widget.steps[index];
-              return Column(
-                children: [
-                  _buildTitleBar(step.name),
-                  Expanded(child: step.content),
-                ],
+  late bool _listenerAdded;
+
+  bool _isAnimationEvent = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _listenerAdded = false;
+  }
+
+  void _onControllerUpdate(TabController controller) {
+    if (controller.indexIsChanging) {
+      // アニメーション開始
+      setState(() {
+        _isAnimationEvent = true;
+      });
+      print("start");
+    } else {
+      // アニメーション終了
+      setState(() {
+        _isAnimationEvent = true;
+      });
+      print("end");
+    }
+  }
+
+  void _setTabIndex(TabController controller, int index) {
+    if (controller.index == index) {
+      return;
+    }
+    controller.index = index;
+  }
+
+  Widget _buildContent(TabController controller) {
+    var result = Expanded(
+      child: Container(
+        child: TabBarView(
+          physics: new NeverScrollableScrollPhysics(),
+          children: List.generate(widget.steps.length, (index) {
+            var step = widget.steps[index];
+            if (index == controller.index ||
+                (_isAnimationEvent && index == controller.previousIndex)) {
+              return Container(
+                child: Column(
+                  children: [
+                    _buildTitleBar(step.name),
+                    Expanded(child: step.builder()),
+                  ],
+                ),
               );
-            }),
-          ),
+            } else {
+              return Container(
+                child: Column(
+                  children: [
+                    _buildTitleBar(step.name),
+                    Expanded(child: Container()),
+                  ],
+                ),
+              );
+            }
+          }),
         ),
-      );
+      ),
+    );
+    _isAnimationEvent = false;
+    return result;
+  }
 
   Widget? _buildPrevButton(TabController controller) => controller.index > 0
       ? TextButton(
           onPressed: () {
-            setState(() {
-              controller.index--;
-            });
+            _setTabIndex(controller, controller.index - 1);
           },
           child: Row(
             children: [
@@ -80,9 +130,8 @@ class _TabStepperState extends State<TabStepper> {
                 var isOk = widget.steps[controller.index].validate?.call();
                 if (isOk == null || isOk) {
                   widget.steps[controller.index].onFinish?.call();
-                  setState(() {
-                    controller.index++;
-                  });
+
+                  _setTabIndex(controller, controller.index + 1);
                 }
               },
               child: Text("次へ", style: TextStyle(fontSize: 18.0)),
@@ -118,12 +167,11 @@ class _TabStepperState extends State<TabStepper> {
             Align(
               alignment: Alignment.center,
               child: DotsIndicator(
-                  dotsCount: widget.steps.length,
-                  position: controller.index + 0.0,
-                  onTap: (position) => setState(() {
-                        controller.index =
-                            min(position.round(), controller.index);
-                      })),
+                dotsCount: widget.steps.length,
+                position: controller.index + 0.0,
+                onTap: (position) => _setTabIndex(
+                    controller, min(position.round(), controller.index)),
+              ),
             ),
             Row(children: () {
               var list = <Widget>[
@@ -147,19 +195,24 @@ class _TabStepperState extends State<TabStepper> {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
+    var result = DefaultTabController(
       length: 3,
       child: Builder(
         builder: (BuildContext context) {
           var controller = DefaultTabController.of(context)!;
+          if (!_listenerAdded) {
+            controller.addListener(() => _onControllerUpdate(controller));
+            _listenerAdded = true;
+          }
           return Column(
             children: [
-              _buildContent(),
+              _buildContent(controller),
               _buildStepBar(controller),
             ],
           );
         },
       ),
     );
+    return result;
   }
 }
