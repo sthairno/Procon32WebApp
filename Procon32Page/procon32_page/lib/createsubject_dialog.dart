@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:openapi/openapi.dart' as api;
+import 'package:procon32_page/procon32api.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:cool_stepper/cool_stepper.dart';
@@ -194,7 +195,9 @@ class _PuzzleEditorState extends State<PuzzleEditor> {
 }
 
 class CreateSubjectDialog extends StatefulWidget {
-  const CreateSubjectDialog({Key? key}) : super(key: key);
+  const CreateSubjectDialog({Key? key, required this.client}) : super(key: key);
+
+  final Procon32API client;
 
   @override
   _CreateSubjectDialogState createState() => _CreateSubjectDialogState();
@@ -511,7 +514,75 @@ class _CreateSubjectDialogState extends State<CreateSubjectDialog> {
         ],
       ),
       body: CoolStepper(
-        onCompleted: () => Navigator.pop(context),
+        onCompleted: () async {
+          var image = await widget.client
+              .uploadImage(imglib.encodePng(data.baseImage!) as Uint8List);
+          if (image == null) {
+            print("画像のアップロードに失敗しました");
+            return;
+          }
+          print(image);
+
+          int dispIdx = 0;
+          List<List<String>> indexes = List.generate(
+            data.peaceCntY!,
+            (dispY) => List.generate(
+              data.peaceCntX!,
+              (dispX) {
+                var dataIdx =
+                    data.peaces.indexWhere((peace) => peace.dispIdx == dispIdx);
+                int dataX = dataIdx % data.peaceCntX!;
+                int dataY = dataIdx ~/ data.peaceCntX!;
+                dispIdx++;
+                return "${dataX.toRadixString(16).toUpperCase()}${dataY.toRadixString(16).toUpperCase()}";
+              },
+            ),
+          );
+
+          dispIdx = 0;
+          List<List<api.PeaceRotate>> rotations = List.generate(
+            data.peaceCntY!,
+            (dispY) => List.generate(
+              data.peaceCntX!,
+              (dispX) {
+                var peace =
+                    data.peaces.firstWhere((peace) => peace.dispIdx == dispIdx);
+                dispIdx++;
+                switch (peace.rotAngle) {
+                  case 0:
+                    return api.PeaceRotate.number0;
+                  case 1:
+                    return api.PeaceRotate.number90;
+                  case 2:
+                    return api.PeaceRotate.number180;
+                  case 3:
+                    return api.PeaceRotate.number270;
+                  default:
+                    return api.PeaceRotate.number0;
+                }
+              },
+            ),
+          );
+
+          var subject = await widget.client.createSubjectById(
+              image,
+              data.displayName!,
+              data.maxSelectCount!,
+              data.selectionCost!,
+              data.swapCost!,
+              data.peaceCntX!,
+              data.peaceCntY!,
+              indexes,
+              rotations);
+
+          if (subject == null) {
+            print("課題のアップロードに失敗しました");
+            return;
+          }
+          print(subject);
+
+          Navigator.pop(context);
+        },
         config: CoolStepperConfig(
           backText: "戻る",
           nextText: "次へ",

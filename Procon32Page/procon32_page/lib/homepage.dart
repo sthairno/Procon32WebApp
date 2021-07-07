@@ -174,7 +174,7 @@ class _HomePageState extends State<HomePage> {
                 1, subject.peaceCount.y / subject.peaceCount.x))
             .toList(),
       ),
-      floatingActionButton: /*_procon32api.isLoggedIn()*/ true
+      floatingActionButton: _procon32api.isLoggedIn()
           ? FloatingActionButton(
               onPressed: () {
                 Navigator.push(
@@ -182,7 +182,7 @@ class _HomePageState extends State<HomePage> {
                     MaterialPageRoute(
                       fullscreenDialog: true,
                       builder: (BuildContext context) {
-                        return CreateSubjectDialog();
+                        return CreateSubjectDialog(client: _procon32api);
                       },
                     ));
               },
