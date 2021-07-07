@@ -5,14 +5,31 @@ import 'package:openapi/openapi.dart' as api;
 import 'package:dio/dio.dart';
 import 'package:built_collection/src/list.dart';
 
+import 'package:built_collection/built_collection.dart';
+import 'package:built_value/serializer.dart';
+
 class Procon32API {
-  final _openapi = new api.Openapi();
+  late api.Openapi _openapi;
 
   final _userStateChangesController = new StreamController<api.User?>();
 
   api.User? _user;
 
   String? _apiKey;
+
+  Procon32API() {
+    var customSerializers = (api.standardSerializers.toBuilder()
+          ..addBuilderFactory(
+            const FullType(BuiltList, [FullType(String)]),
+            () => ListBuilder<String>(),
+          )
+          ..addBuilderFactory(
+            const FullType(BuiltList, [FullType(api.PeaceRotate)]),
+            () => ListBuilder<api.PeaceRotate>(),
+          ))
+        .build();
+    _openapi = new api.Openapi(serializers: customSerializers);
+  }
 
   Stream<api.User?> userStateChanges() => _userStateChangesController.stream;
 
