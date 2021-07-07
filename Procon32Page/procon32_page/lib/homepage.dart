@@ -85,21 +85,69 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildSubjectCard(api.Subject subject) => Stack(children: [
         Container(
-            decoration: BoxDecoration(
-              color: Colors.grey.shade700,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade700,
+          ),
+          padding: EdgeInsets.all(4.0),
+          child: Center(
+            child: Image.network(
+              "https://procon32.sthairno.dev${subject.thumbnailFilePath}",
+              width: double.maxFinite,
+              fit: BoxFit.fitWidth,
             ),
-            padding: EdgeInsets.all(4.0),
-            child: Center(
-                child: Image.network(
-                    "https://procon32.sthairno.dev${subject.thumbnailFilePath}",
-                    fit: BoxFit.fitWidth))),
-        Container(
-            color: Colors.white,
-            margin: EdgeInsets.all(10.0),
+          ),
+        ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            color: Colors.black45,
             child: ListTile(
-              title: Text("${subject.name}"),
-              subtitle: Text("${subject.id}"),
-            )),
+                title: Text(
+                  "${subject.name}",
+                  style: TextStyle(color: Colors.grey.shade100),
+                ),
+                subtitle: Text(
+                  "${subject.id}",
+                  style: TextStyle(color: Colors.grey.shade400),
+                ),
+                trailing: subject.createdUserId == _auth.currentUser?.uid
+                    ? IconButton(
+                        icon: Icon(
+                          Icons.delete,
+                          color: Colors.grey.shade100,
+                        ),
+                        onPressed: () async {
+                          var result = await showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text("課題の削除"),
+                              content: Text(
+                                  "課題(ID:${subject.id})を削除しますか？\nこの操作は取り消せません。"),
+                              actions: [
+                                SimpleDialogOption(
+                                  child: Text("はい"),
+                                  onPressed: () {
+                                    Navigator.pop(context, true);
+                                  },
+                                ),
+                                SimpleDialogOption(
+                                  child: Text("いいえ"),
+                                  onPressed: () {
+                                    Navigator.pop(context, false);
+                                  },
+                                )
+                              ],
+                            ),
+                          );
+                          if (result as bool) {
+                            await _procon32api.deleteSubject(subject);
+                            _updateSubjectList();
+                          }
+                        },
+                      )
+                    : null),
+          ),
+        ),
       ]);
 
   @override
@@ -162,8 +210,8 @@ class _HomePageState extends State<HomePage> {
                           ]))
         ],
       ),
-      body: StaggeredGridView.count(
-        crossAxisCount: 2,
+      body: StaggeredGridView.extent(
+        maxCrossAxisExtent: 400,
         padding: const EdgeInsets.all(4),
         mainAxisSpacing: 4,
         crossAxisSpacing: 4,
