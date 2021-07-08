@@ -22,6 +22,7 @@ class _Procon32AppState extends State<Procon32App> {
         title: 'Procon32 競技練習サーバー',
         theme: ThemeData(
           primarySwatch: Colors.blue,
+          fontFamily: "Noto Sans JP",
         ),
         home: FutureBuilder(
           future: _initialization,
