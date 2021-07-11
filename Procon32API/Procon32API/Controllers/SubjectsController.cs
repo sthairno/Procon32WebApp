@@ -173,7 +173,7 @@ namespace Procon32API.Controllers
                     userid,
                     async (stream) =>
                     {
-                        using (var subjectFileWriter = new StreamWriter(stream, Encoding.UTF8))
+                        using (var subjectFileWriter = new StreamWriter(stream, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)))
                         using (Image<Rgb24> subjectImg = new Image<Rgb24>(subjectSize.Width, subjectSize.Height))
                         {
                             subjectFileWriter.NewLine = "\n";
