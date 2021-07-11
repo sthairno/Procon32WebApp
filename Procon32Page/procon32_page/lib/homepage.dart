@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:procon32_page/procon32api.dart';
 import 'package:openapi/openapi.dart' as api;
+import 'package:procon32_page/subjectdetails_dialog.dart';
 
 import 'createsubject_dialog.dart';
 import 'createuser_dialog.dart';
@@ -83,72 +84,87 @@ class _HomePageState extends State<HomePage> {
     _updateSubjectList();
   }
 
-  Widget _buildSubjectCard(api.Subject subject) => Stack(children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade700,
-          ),
-          padding: EdgeInsets.all(4.0),
-          child: Center(
-            child: Image.network(
-              "https://procon32.sthairno.dev${subject.thumbnailFilePath}",
-              width: double.maxFinite,
-              fit: BoxFit.fitWidth,
+  Widget _buildSubjectCard(api.Subject subject) => InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              fullscreenDialog: true,
+              builder: (BuildContext context) {
+                return SubjectDetailsDialog(subject);
+              },
             ),
-          ),
-        ),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: Container(
-            color: Colors.black45,
-            child: ListTile(
-                title: Text(
-                  "${subject.name}",
-                  style: TextStyle(color: Colors.grey.shade100),
+          );
+        },
+        child: Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade700,
+              ),
+              padding: EdgeInsets.all(4.0),
+              child: Center(
+                child: Image.network(
+                  "https://procon32.sthairno.dev${subject.thumbnailFilePath}",
+                  width: double.maxFinite,
+                  fit: BoxFit.fitWidth,
                 ),
-                subtitle: Text(
-                  "${subject.id}",
-                  style: TextStyle(color: Colors.grey.shade400),
-                ),
-                trailing: subject.createdUserId == _auth.currentUser?.uid
-                    ? IconButton(
-                        icon: Icon(
-                          Icons.delete,
-                          color: Colors.grey.shade100,
-                        ),
-                        onPressed: () async {
-                          var result = await showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: Text("課題の削除"),
-                              content: Text(
-                                  "課題(ID:${subject.id})を削除しますか？\nこの操作は取り消せません。"),
-                              actions: [
-                                SimpleDialogOption(
-                                  child: Text("はい"),
-                                  onPressed: () {
-                                    Navigator.pop(context, true);
-                                  },
-                                ),
-                                SimpleDialogOption(
-                                  child: Text("いいえ"),
-                                  onPressed: () {
-                                    Navigator.pop(context, false);
-                                  },
-                                )
-                              ],
+              ),
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                color: Colors.black45,
+                child: ListTile(
+                    title: Text(
+                      "${subject.name}",
+                      style: TextStyle(color: Colors.grey.shade100),
+                    ),
+                    subtitle: Text(
+                      "${subject.id}",
+                      style: TextStyle(color: Colors.grey.shade400),
+                    ),
+                    trailing: subject.createdUserId == _auth.currentUser?.uid
+                        ? IconButton(
+                            icon: Icon(
+                              Icons.delete,
+                              color: Colors.grey.shade100,
                             ),
-                          );
-                          if (result as bool) {
-                            await _procon32api.deleteSubject(subject);
-                            _updateSubjectList();
-                          }
-                        },
-                      )
-                    : null),
-          ),
+                            onPressed: () async {
+                              var result = await showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text("課題の削除"),
+                                  content: Text(
+                                      "課題(ID:${subject.id})を削除しますか？\nこの操作は取り消せません。"),
+                                  actions: [
+                                    SimpleDialogOption(
+                                      child: Text("はい"),
+                                      onPressed: () {
+                                        Navigator.pop(context, true);
+                                      },
+                                    ),
+                                    SimpleDialogOption(
+                                      child: Text("いいえ"),
+                                      onPressed: () {
+                                        Navigator.pop(context, false);
+                                      },
+                                    )
+                                  ],
+                                ),
+                              );
+                              if (result as bool) {
+                                await _procon32api.deleteSubject(subject);
+                                _updateSubjectList();
+                              }
+                            },
+                          )
+                        : null),
+              ),
+            ),
+          ],
         ),
-      ]);
+      );
 
   @override
   Widget build(BuildContext context) {
