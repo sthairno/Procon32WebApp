@@ -64,9 +64,10 @@ class _HomePageState extends State<HomePage> {
     var apiUser = await _procon32api.login(await user.getIdToken());
     if (apiUser == null) {
       showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (builder) => CreateUserDialog(_procon32api));
+        context: context,
+        barrierDismissible: false,
+        builder: (builder) => CreateUserDialog(_procon32api),
+      );
     }
   }
 
@@ -116,50 +117,51 @@ class _HomePageState extends State<HomePage> {
               child: Container(
                 color: Colors.black45,
                 child: ListTile(
-                    title: Text(
-                      "${subject.name}",
-                      style: TextStyle(color: Colors.grey.shade100),
-                    ),
-                    subtitle: Text(
-                      "${subject.id}",
-                      style: TextStyle(color: Colors.grey.shade400),
-                    ),
-                    trailing: subject.createdUserId == _auth.currentUser?.uid
-                        ? IconButton(
-                            icon: Icon(
-                              Icons.delete,
-                              color: Colors.grey.shade100,
-                            ),
-                            onPressed: () async {
-                              var result = await showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text("課題の削除"),
-                                  content: Text(
-                                      "課題(ID:${subject.id})を削除しますか？\nこの操作は取り消せません。"),
-                                  actions: [
-                                    SimpleDialogOption(
-                                      child: Text("はい"),
-                                      onPressed: () {
-                                        Navigator.pop(context, true);
-                                      },
-                                    ),
-                                    SimpleDialogOption(
-                                      child: Text("いいえ"),
-                                      onPressed: () {
-                                        Navigator.pop(context, false);
-                                      },
-                                    )
-                                  ],
-                                ),
-                              );
-                              if (result as bool) {
-                                await _procon32api.deleteSubject(subject);
-                                _updateSubjectList();
-                              }
-                            },
-                          )
-                        : null),
+                  title: Text(
+                    "${subject.name}",
+                    style: TextStyle(color: Colors.grey.shade100),
+                  ),
+                  subtitle: Text(
+                    "${subject.id}",
+                    style: TextStyle(color: Colors.grey.shade400),
+                  ),
+                  trailing: subject.createdUserId == _auth.currentUser?.uid
+                      ? IconButton(
+                          icon: Icon(
+                            Icons.delete,
+                            color: Colors.grey.shade100,
+                          ),
+                          onPressed: () async {
+                            var result = await showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: Text("課題の削除"),
+                                content: Text(
+                                    "課題(ID:${subject.id})を削除しますか？\nこの操作は取り消せません。"),
+                                actions: [
+                                  SimpleDialogOption(
+                                    child: Text("はい"),
+                                    onPressed: () {
+                                      Navigator.pop(context, true);
+                                    },
+                                  ),
+                                  SimpleDialogOption(
+                                    child: Text("いいえ"),
+                                    onPressed: () {
+                                      Navigator.pop(context, false);
+                                    },
+                                  )
+                                ],
+                              ),
+                            );
+                            if (result as bool) {
+                              await _procon32api.deleteSubject(subject);
+                              _updateSubjectList();
+                            }
+                          },
+                        )
+                      : null,
+                ),
               ),
             ),
           ],
@@ -177,53 +179,59 @@ class _HomePageState extends State<HomePage> {
             width: 34,
             height: 34,
             decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  fit: BoxFit.fill,
-                  image: NetworkImage(firebaseUser!.photoURL!),
-                )));
+              shape: BoxShape.circle,
+              image: DecorationImage(
+                fit: BoxFit.fill,
+                image: NetworkImage(firebaseUser!.photoURL!),
+              ),
+            ),
+          );
 
     return Scaffold(
       appBar: AppBar(
         title: Text("Procon32競技練習サーバー"),
         actions: <Widget>[
           IconButton(
-              onPressed: () {
-                _updateSubjectList();
-              },
-              icon: const Icon(Icons.refresh)),
+            onPressed: () {
+              _updateSubjectList();
+            },
+            icon: const Icon(Icons.refresh),
+          ),
           Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-              child: procon32apiUser == null
-                  ? OutlinedButton(
-                      onPressed: () async {
-                        await _signInWithGoogle();
-                      },
-                      child: Text(
-                        "ログイン",
-                        style: TextStyle(color: Colors.white),
-                      ))
-                  : PopupMenuButton(
-                      child: userIcon,
-                      tooltip: procon32apiUser.displayName,
-                      onSelected: (_) async {
-                        await _auth.signOut();
-                      },
-                      itemBuilder: (builder) => <PopupMenuEntry>[
-                            PopupMenuItem(
-                              enabled: false,
-                              child: ListTile(
-                                leading: userIcon,
-                                title: Text(procon32apiUser.displayName),
-                                subtitle: Text(procon32apiUser.userID!),
-                              ),
-                            ),
-                            PopupMenuDivider(),
-                            PopupMenuItem(
-                              value: 0,
-                              child: Text("ログアウト"),
-                            )
-                          ]))
+            padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+            child: procon32apiUser == null
+                ? OutlinedButton(
+                    onPressed: () async {
+                      await _signInWithGoogle();
+                    },
+                    child: Text(
+                      "ログイン",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  )
+                : PopupMenuButton(
+                    child: userIcon,
+                    tooltip: procon32apiUser.displayName,
+                    onSelected: (_) async {
+                      await _auth.signOut();
+                    },
+                    itemBuilder: (builder) => <PopupMenuEntry>[
+                      PopupMenuItem(
+                        enabled: false,
+                        child: ListTile(
+                          leading: userIcon,
+                          title: Text(procon32apiUser.displayName),
+                          subtitle: Text(procon32apiUser.userID!),
+                        ),
+                      ),
+                      PopupMenuDivider(),
+                      PopupMenuItem(
+                        value: 0,
+                        child: Text("ログアウト"),
+                      ),
+                    ],
+                  ),
+          ),
         ],
       ),
       body: StaggeredGridView.extent(
@@ -242,13 +250,14 @@ class _HomePageState extends State<HomePage> {
           ? FloatingActionButton(
               onPressed: () {
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      fullscreenDialog: true,
-                      builder: (BuildContext context) {
-                        return CreateSubjectDialog(client: _procon32api);
-                      },
-                    ));
+                  context,
+                  MaterialPageRoute(
+                    fullscreenDialog: true,
+                    builder: (BuildContext context) {
+                      return CreateSubjectDialog(client: _procon32api);
+                    },
+                  ),
+                );
               },
               tooltip: "課題を作成",
               child: const Icon(Icons.add),
