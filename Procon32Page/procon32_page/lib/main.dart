@@ -19,6 +19,7 @@ class Procon32App extends StatefulWidget {
 
 class _Procon32AppState extends State<Procon32App> {
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   bool _isReady = false;
 
@@ -69,6 +70,7 @@ class _Procon32AppState extends State<Procon32App> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: _navigatorKey,
       title: 'Procon32 競技練習サーバー',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -85,9 +87,9 @@ class _Procon32AppState extends State<Procon32App> {
     var apiUser = await procon32api.login(await user.getIdToken());
     if (apiUser == null) {
       showDialog(
-        context: context,
+        context: _navigatorKey.currentState!.overlay!.context,
         barrierDismissible: false,
-        builder: (builder) => CreateUserDialog(procon32api),
+        builder: (builder) => CreateUserDialog(),
       );
     }
   }

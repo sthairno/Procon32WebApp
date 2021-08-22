@@ -1,12 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-import 'procon32api.dart';
+import 'package:procon32_page/common.dart';
 
 class CreateUserDialog extends StatefulWidget {
-  CreateUserDialog(this.api);
-
-  final Procon32API api;
+  CreateUserDialog();
 
   @override
   _CreateUserDialogState createState() => _CreateUserDialogState();
@@ -30,9 +27,13 @@ class _CreateUserDialogState extends State<CreateUserDialog> {
       actions: [
         TextButton(
             onPressed: () async {
-              widget.api.createUser(
+              var result = await procon32api.createUser(
                   await FirebaseAuth.instance.currentUser!.getIdToken(),
                   _displayName);
+              if (result == null) {
+                FirebaseAuth.instance.signOut();
+                showSimpleSnackbar(context, "ユーザーの作成に失敗しました");
+              }
               Navigator.pop(context);
             },
             child: Text("OK"))

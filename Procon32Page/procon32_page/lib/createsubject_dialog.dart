@@ -8,6 +8,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:cool_stepper/cool_stepper.dart';
 
+import 'common.dart';
 import 'procon32api.dart';
 
 class _PeaceData {
@@ -383,8 +384,7 @@ class _CreateSubjectDialogState extends State<CreateSubjectDialog> {
               return _loadImage(file.bytes!);
             }();
             if (validateResult != null) {
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(SnackBar(content: Text(validateResult)));
+              showSimpleSnackbar(context, validateResult);
             }
           },
           child: Container(
