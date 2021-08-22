@@ -1,9 +1,11 @@
 import 'dart:html' as html;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'procon32api.dart';
+import 'usersettings_dialog.dart';
 
 Procon32API _procon32api = Procon32API();
 
@@ -56,10 +58,29 @@ AppBar buildAppBar(BuildContext context, {List<Widget>? actions = null}) {
           : PopupMenuButton(
               child: userIcon,
               tooltip: procon32apiUser.displayName,
-              onSelected: (_) async {
-                await FirebaseAuth.instance.signOut();
+              onSelected: (String? item) async {
+                switch (item) {
+                  case "apikey":
+                    Clipboard.setData(ClipboardData(text: procon32api.apiKey));
+                    showSimpleSnackbar(context, "Copied!");
+                    break;
+                  case "settings":
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        fullscreenDialog: true,
+                        builder: (BuildContext context) {
+                          return UserSettingsDialog(procon32apiUser);
+                        },
+                      ),
+                    );
+                    break;
+                  case "logout":
+                    await FirebaseAuth.instance.signOut();
+                    break;
+                }
               },
-              itemBuilder: (builder) => <PopupMenuEntry>[
+              itemBuilder: (builder) => <PopupMenuEntry<String>>[
                 PopupMenuItem(
                   enabled: false,
                   child: ListTile(
@@ -70,8 +91,25 @@ AppBar buildAppBar(BuildContext context, {List<Widget>? actions = null}) {
                 ),
                 PopupMenuDivider(),
                 PopupMenuItem(
-                  value: 0,
-                  child: Text("ログアウト"),
+                  value: "apikey",
+                  child: ListTile(
+                    title: Text("APIキーをコピー"),
+                    trailing: const Icon(Icons.copy),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: "settings",
+                  child: ListTile(
+                    title: Text("ユーザー設定"),
+                    trailing: const Icon(Icons.settings),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: "logout",
+                  child: ListTile(
+                    title: Text("ログアウト"),
+                    trailing: const Icon(Icons.logout),
+                  ),
                 ),
               ],
             ),
@@ -129,3 +167,6 @@ Drawer buildDrawer(BuildContext context) {
     ),
   );
 }
+
+void showSimpleSnackbar(BuildContext context, String text) =>
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));

@@ -41,6 +41,8 @@ class Procon32API {
     _openapi.setApiKey("APIKey", _apiKey!);
   }
 
+  String? get apiKey => _apiKey;
+
   Future<api.User?> login(String jwtToken) async {
     // ユーザー取得
     _openapi.setApiKey("JWT", "Bearer $jwtToken");
