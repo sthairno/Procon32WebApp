@@ -22,9 +22,10 @@ Future<bool> _signInWithGoogle() async {
   }
 }
 
-AppBar buildAppBar(BuildContext context, {List<Widget> actions = const []}) {
+AppBar buildAppBar(BuildContext context, {List<Widget>? actions = null}) {
   var firebaseUser = FirebaseAuth.instance.currentUser;
   var procon32apiUser = procon32api.getUser();
+
   Widget userIcon = firebaseUser?.photoURL == null
       ? const Icon(Icons.account_circle)
       : Container(
@@ -38,6 +39,7 @@ AppBar buildAppBar(BuildContext context, {List<Widget> actions = const []}) {
             ),
           ),
         );
+
   var baseActions = <Widget>[
     Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
@@ -75,41 +77,55 @@ AppBar buildAppBar(BuildContext context, {List<Widget> actions = const []}) {
             ),
     ),
   ];
+
+  if (actions == null) {
+    actions = [];
+  }
   actions.addAll(baseActions);
+
   return AppBar(
     title: Text("Procon32競技練習サーバー"),
     actions: actions,
   );
 }
 
-Drawer buildDrawer(BuildContext context) => Drawer(
-      child: ListView(
-        children: [
-          DrawerHeader(
-            child: Text("Procon32 競技練習サーバー"),
-          ),
-          ListTile(
-            title: Text("課題一覧"),
-            trailing: const Icon(Icons.navigate_next),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            title: Text("回答"),
-            trailing: const Icon(Icons.navigate_next),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            title: Text("APIドキュメント"),
-            trailing: const Icon(Icons.open_in_new),
-            onTap: () {
-              html.window.open('https://procon32.sthairno.dev/swagger/', '');
-              Navigator.pop(context);
-            },
-          )
-        ],
-      ),
-    );
+Drawer buildDrawer(BuildContext context) {
+  final routeName = ModalRoute.of(context)!.settings.name;
+  return Drawer(
+    child: ListView(
+      children: [
+        DrawerHeader(
+          child: Text("Procon32 競技練習サーバー"),
+        ),
+        ListTile(
+          title: Text("課題一覧"),
+          trailing: const Icon(Icons.navigate_next),
+          onTap: () {
+            Navigator.pop(context);
+            if (routeName != "/") {
+              Navigator.of(context).pushReplacementNamed("/");
+            }
+          },
+        ),
+        ListTile(
+          title: Text("回答"),
+          trailing: const Icon(Icons.navigate_next),
+          onTap: () {
+            Navigator.pop(context);
+            if (routeName != "/submit") {
+              Navigator.of(context).pushReplacementNamed("/submit");
+            }
+          },
+        ),
+        ListTile(
+          title: Text("APIドキュメント"),
+          trailing: const Icon(Icons.open_in_new),
+          onTap: () {
+            html.window.open('https://procon32.sthairno.dev/swagger/', '');
+            Navigator.pop(context);
+          },
+        )
+      ],
+    ),
+  );
+}
