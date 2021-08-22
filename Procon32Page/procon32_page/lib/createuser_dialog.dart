@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:procon32_page/procon32api.dart';
+
+import 'procon32api.dart';
 
 class CreateUserDialog extends StatefulWidget {
   CreateUserDialog(this.api);

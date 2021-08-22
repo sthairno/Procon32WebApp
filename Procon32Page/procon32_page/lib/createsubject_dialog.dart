@@ -4,10 +4,11 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:openapi/openapi.dart' as api;
-import 'package:procon32_page/procon32api.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:cool_stepper/cool_stepper.dart';
+
+import 'procon32api.dart';
 
 class _PeaceData {
   int dispIdx;
